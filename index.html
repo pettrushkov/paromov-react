@@ -59,8 +59,8 @@
 			}
 
 			const handleCellClick = (index) => {
-				// exit from handler if cell already has value
-				if (cells[index]) {
+				// exit from handler if cell already has value or winnerSequence is defined
+				if (cells[index] || winnerSequence) {
 					return;
 				}
 
