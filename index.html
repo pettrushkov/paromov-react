@@ -47,6 +47,8 @@
 			const [cells, setCells] = React.useState([null, null, null, null, null, null, null, null, null]);
 			const [currentStep, setCurrentStep] = React.useState(SYMBOL_O);
 			const [winnerSequence, setWinnerSequence] = React.useState();
+			const [reset, setReset] = React.useState(false);
+			const [heading, setHeading] = React.useState('Хід:');
 
 			const getSymbolClassName = (symbol) => {
 				if (symbol === SYMBOL_O) return 'symbol--o';
@@ -57,6 +59,34 @@
 			const renderSymbol = (symbol) => {
 				return <span className={`symbol ${getSymbolClassName(symbol)}`}>{symbol}</span>;
 			}
+
+			const handleReset = () => {
+				setReset(false);
+				setCells(Array(9).fill(null));
+				setCurrentStep(SYMBOL_O); // default
+				setWinnerSequence(undefined);
+				setHeading('Хід:');
+			}
+
+			React.useEffect(() => {
+				// This will be triggered whenever winner changes
+				if (winnerSequence || !cells.includes(null)) {
+					setReset(true);
+				}
+
+				if (!cells.includes(null)) {
+					setHeading('Нічия!');
+					return;
+				}
+
+				// if there is winner
+				if (winnerSequence) {
+					setHeading('Переможець:');
+				} else {
+					setHeading('Хід:');
+				}
+			}, [winnerSequence, cells]);
+
 
 			const handleCellClick = (index) => {
 				// exit from handler if cell already has value or winnerSequence is defined
@@ -82,13 +112,16 @@
 			return (
 				<div className="game">
 					<div className="game-info">
-						{winnerSequence ? 'Переможець' : 'Хід'}: {(winnerSymbol ?? currentStep)}
+						{heading} <span className={`heading-symbol ${!cells.includes(null) ? 'heading-symbol--hide' : ''}`}>{(winnerSymbol ?? currentStep)}</span>
 					</div>
 					<div className="game-field">
 						{cells.map((symbol, index) => {
 							const isWinner = winnerSequence?.includes(index);
 							return <button type="button" key={index} className={`cell ${isWinner ? 'cell--win' : ''}`} onClick={() => handleCellClick(index)}>{symbol ? renderSymbol(symbol) : null}</button>;
 						})}
+					</div>
+					<div>
+						<button type="button" className={`reset ${reset ? '' : 'reset--hide'}`} onClick={handleReset}>Reset</button>
 					</div>
 				</div>
 			);
@@ -154,6 +187,11 @@
 			border: 1px solid gray;
 			padding: 4px 12px;
 			border-radius: 4px;
+		}
+
+		.reset--hide,
+		.heading-symbol--hide {
+			display: none;
 		}
 	</style>
 
