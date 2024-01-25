@@ -43,20 +43,10 @@
 			}
 		}
 
-		function App() {
+		const useGameState = () => {
 			const [cells, setCells] = React.useState([null, null, null, null, null, null, null, null, null]);
 			const [currentStep, setCurrentStep] = React.useState(SYMBOL_O);
 			const [winnerSequence, setWinnerSequence] = React.useState();
-
-			const getSymbolClassName = (symbol) => {
-				if (symbol === SYMBOL_O) return 'symbol--o';
-				if (symbol === SYMBOL_X) return 'symbol--y';
-				return '';
-			}
-
-			const renderSymbol = (symbol) => {
-				return <span className={`symbol ${getSymbolClassName(symbol)}`}>{symbol}</span>;
-			}
 
 			const handleReset = () => {
 				setCells(Array(9).fill(null));
@@ -87,23 +77,61 @@
 			const winnerSymbol = winnerSequence ? cells[winnerSequence[0]] : undefined;
 			const isDraw = !winnerSequence && cells.filter(value => value).length === 9;
 
+			return cells, currentStep, winnerSequence, handleReset, handleCellClick, winnerSymbol, isDraw;
+		}
+
+		function App() {
+
+			const { cells, currentStep, winnerSequence, handleReset, handleCellClick, winnerSymbol, isDraw } = useGameState();
+
 			return (
 				<div className="game">
-					<div className="game-info">
-						{isDraw ? 'Нічия' : winnerSequence ? 'Переможець: ' : 'Хід: '}
-						{!isDraw && renderSymbol(winnerSymbol ?? currentStep)}
-					</div>
+					<GameInfo
+						isDraw={isDraw}
+						currentStep={currentStep}
+						winnerSymbol={winnerSymbol}
+					/>
+
 					<div className="game-field">
-						{cells.map((symbol, index) => {
-							const isWinner = winnerSequence?.includes(index);
-							return <button type="button" key={index} className={`cell ${isWinner ? 'cell--win' : ''}`} onClick={() => handleCellClick(index)}>{symbol ? renderSymbol(symbol) : null}</button>;
-						})}
+						{cells.map((symbol, index) => (
+							<GameCell
+								symbol={symbol}
+								isWinner={winnerSequence?.includes(index)}
+								onClick={() => handleCellClick(index)}
+							/>
+						))}
 					</div>
 					<div>
 						<button type="button" className="reset" onClick={handleReset}>Reset</button>
 					</div>
 				</div>
 			);
+		}
+
+		const GameInfo = ({ isDraw, winnerSequence, currentStep, renderSymbol, winnerSymbol }) => {
+			if (isDraw) {
+				return <div className="game-info">Нічия</div>
+			}
+
+			if (winnerSymbol) {
+				return <div className="game-info">Переможець: <GameSymbol symbol={winnerSymbol} /></div>
+			}
+
+			return <div className="game-info">Хід: <GameSymbol symbol={currentStep} /></div>
+		}
+
+		const GameCell = ({ isWinner, onClick, symbol }) => {
+			return <button type="button" className={`cell ${isWinner ? 'cell--win' : ''}`} onClick={onClick}>{symbol ? <GameSymbol symbol={symbol} /> : null}</button>;
+		}
+
+		const GameSymbol = ({ symbol }) => {
+			const getSymbolClassName = (symbol) => {
+				if (symbol === SYMBOL_O) return 'symbol--o';
+				if (symbol === SYMBOL_X) return 'symbol--y';
+				return '';
+			}
+
+			return <span className={`symbol ${getSymbolClassName(symbol)}`}>{symbol}</span>;
 		}
 
 		const root = ReactDOM.createRoot(document.getElementById('root'));
